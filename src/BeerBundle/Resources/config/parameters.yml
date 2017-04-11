@@ -1,0 +1,6 @@
+parameters:
+    categories_source: https://raw.githubusercontent.com/brewdega/open-beer-database-dumps/master/dumps/categories.csv
+    styles_source: https://raw.githubusercontent.com/brewdega/open-beer-database-dumps/master/dumps/styles.csv
+    braweries_source: https://raw.githubusercontent.com/brewdega/open-beer-database-dumps/master/dumps/breweries.csv
+    locations_source: https://raw.githubusercontent.com/brewdega/open-beer-database-dumps/master/dumps/geocodes.csv
+    beers_source: https://raw.githubusercontent.com/brewdega/open-beer-database-dumps/master/dumps/beers.csv
