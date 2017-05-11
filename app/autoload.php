@@ -8,4 +8,9 @@ $loader = require __DIR__.'/../vendor/autoload.php';
 
 AnnotationRegistry::registerLoader([$loader, 'loadClass']);
 
+$classLoader = new \Doctrine\Common\ClassLoader(
+    'DoctrineExtensions', __DIR__ . "/../src/BeerBundle"
+);
+$classLoader->register();
+
 return $loader;

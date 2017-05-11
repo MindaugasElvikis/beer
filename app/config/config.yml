@@ -60,6 +60,9 @@ doctrine:
         auto_generate_proxy_classes: "%kernel.debug%"
         naming_strategy: doctrine.orm.naming_strategy.underscore
         auto_mapping: true
+        dql:
+          numeric_functions:
+            distance: BeerBundle\Doctrine\DQL\DistanceFunction
 
 # Swiftmailer Configuration
 swiftmailer:
@@ -68,3 +71,20 @@ swiftmailer:
     username:  "%mailer_user%"
     password:  "%mailer_password%"
     spool:     { type: memory }
+
+oneup_flysystem:
+    adapters:
+        beer_dumps:
+            local:
+                directory: %kernel.root_dir%/../src/BeerBundle/Resources/files
+                lazy: ~ # boolean (default "false")
+                writeFlags: ~
+                linkHandling: ~
+                permissions: ~
+
+    filesystems:
+        acme:
+            adapter: beer_dumps
+            cache: ~
+            alias: ~
+            mount: ~
