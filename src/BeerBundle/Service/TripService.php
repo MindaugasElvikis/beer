@@ -130,7 +130,9 @@ class TripService
                     $this->kmLeft -= $this->getDistance($path[count($path) - 2], $point);
                     $continue = true;
                     break;
-                } elseif ($this->isWorthFlying($this->home, $point)) {
+                }
+
+                if ($this->isWorthFlying($this->home, $point)) {
                     $path[] = $point;
                     $this->kmLeft -= $this->getDistance($this->home, $point);
                     $continue = true;

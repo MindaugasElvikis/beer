@@ -106,7 +106,7 @@ class BeerService
     protected function importBreweries()
     {
         $breweries = $this->csvSourceToEntities(
-            $this->container->getParameter('braweries_source'),
+            $this->container->getParameter('breweries_source'),
             Brewery::class
         );
 

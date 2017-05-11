@@ -17,6 +17,8 @@ class Configuration implements ConfigurationInterface
 
     /**
      * @return TreeBuilder
+     *
+     * @throws \RuntimeException
      */
     public function getConfigTreeBuilder()
     {
