@@ -1,4 +1,11 @@
 services:
+    csv.encoder:
+        class: Symfony\Component\Serializer\Encoder\CsvEncoder
+
+    serializer.csv_decoder:
+        class: Symfony\Component\Serializer\Serializer
+        arguments: [[]['@csv.encoder']]
+
     beer.trip_service:
         class: BeerBundle\Service\TripService
         arguments:

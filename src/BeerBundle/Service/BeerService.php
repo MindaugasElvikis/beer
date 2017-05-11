@@ -9,8 +9,6 @@ use BeerBundle\Entity\Location;
 use BeerBundle\Entity\Style;
 use Symfony\Component\DependencyInjection\ContainerAwareTrait;
 use Symfony\Component\DependencyInjection\ContainerInterface;
-use Symfony\Component\Serializer\Encoder\CsvEncoder;
-use Symfony\Component\Serializer\Serializer;
 
 /**
  * Class BeerService.
@@ -23,6 +21,11 @@ class BeerService
      * @var \Doctrine\ORM\EntityManager
      */
     protected $em;
+
+    /**
+     * @var bool
+     */
+    protected $fetchFromRemote = false;
 
     /**
      * BeerService constructor.
@@ -55,6 +58,7 @@ class BeerService
     /**
      * @return $this
      *
+     * @throws \RuntimeException
      * @throws \Doctrine\ORM\ORMException
      * @throws \Symfony\Component\Serializer\Exception\UnexpectedValueException
      * @throws \Symfony\Component\DependencyInjection\Exception\ServiceNotFoundException
@@ -96,6 +100,7 @@ class BeerService
     /**
      * @return $this
      *
+     * @throws \RuntimeException
      * @throws \Symfony\Component\Serializer\Exception\UnexpectedValueException
      * @throws \Symfony\Component\DependencyInjection\Exception\ServiceNotFoundException
      * @throws \Symfony\Component\DependencyInjection\Exception\ServiceCircularReferenceException
@@ -122,6 +127,7 @@ class BeerService
     /**
      * @return $this
      *
+     * @throws \RuntimeException
      * @throws \Symfony\Component\Serializer\Exception\UnexpectedValueException
      * @throws \Symfony\Component\DependencyInjection\Exception\ServiceNotFoundException
      * @throws \Symfony\Component\DependencyInjection\Exception\ServiceCircularReferenceException
@@ -147,6 +153,7 @@ class BeerService
     /**
      * @return $this
      *
+     * @throws \RuntimeException
      * @throws \Doctrine\ORM\ORMException
      * @throws \Symfony\Component\Serializer\Exception\UnexpectedValueException
      * @throws \Symfony\Component\DependencyInjection\Exception\ServiceNotFoundException
@@ -175,6 +182,7 @@ class BeerService
     /**
      * @return $this
      *
+     * @throws \RuntimeException
      * @throws \Doctrine\ORM\ORMException
      * @throws \Symfony\Component\Serializer\Exception\UnexpectedValueException
      * @throws \Symfony\Component\DependencyInjection\Exception\ServiceNotFoundException
@@ -192,8 +200,11 @@ class BeerService
 
         /** @var Location $location */
         foreach ($locations as $location) {
-            $location->setBrewery($this->em->getReference(Brewery::class, $location->getBrewery()));
-            $this->em->persist($location);
+            $brewery = $this->em->getRepository(Brewery::class)->find($location->getBrewery());
+            if (null !== $brewery) {
+                $location->setBrewery($this->em->getReference(Brewery::class, $location->getBrewery()));
+                $this->em->persist($location);
+            }
         }
         $this->em->flush();
 
@@ -203,6 +214,7 @@ class BeerService
     /**
      * @return $this
      *
+     * @throws \RuntimeException
      * @throws \Doctrine\ORM\ORMException
      * @throws \Symfony\Component\Serializer\Exception\UnexpectedValueException
      * @throws \Symfony\Component\DependencyInjection\Exception\ServiceNotFoundException
@@ -248,16 +260,39 @@ class BeerService
      *
      * @return array
      *
+     * @throws \RuntimeException
      * @throws \Symfony\Component\DependencyInjection\Exception\ServiceNotFoundException
      * @throws \Symfony\Component\DependencyInjection\Exception\ServiceCircularReferenceException
      * @throws \Symfony\Component\Serializer\Exception\UnexpectedValueException
      */
     protected function csvSourceToEntities($source, $object)
     {
-        $serializer = new Serializer([], [new CsvEncoder()]);
-        $data = $serializer->decode(file_get_contents($source), 'csv');
+        $fileName = explode('/', $source);
+        $fileName = end($fileName);
+        $fileSystem = $this->container->get('oneup_flysystem.acme_filesystem');
+
+        if (!$this->fetchFromRemote && $fileSystem->has($fileName)) {
+            $data = $fileSystem->get($fileName)->read();
+        } else {
+            $data = $this->container->get('guzzle_client')->get($source)->getBody()->getContents();
+        }
+
+        $serializer = $this->container->get('serializer.csv_decoder');
+        $data = $serializer->decode($data, 'csv');
         $serializer = $this->container->get('jms_serializer');
 
         return $serializer->deserialize(json_encode($data), sprintf('array<%s>', $object), 'json');
+    }
+
+    /**
+     * @param bool $fetchFromRemote
+     *
+     * @return $this
+     */
+    public function setFetchFromRemote($fetchFromRemote)
+    {
+        $this->fetchFromRemote = $fetchFromRemote;
+
+        return $this;
     }
 }
