@@ -24,13 +24,14 @@ php bin/console doctrine:schema:update --force
 ```
 
 Next, you should import all beers, breweries and their locations.
+By default it will read from local files, add ```remote``` argument to fetch from remote server.
 
 ```
 php bin/console brewery:import
 ```
 
 In order to start generating best path to aquire beer you should run the following command:
-
+None: ```lat``` and ```long``` options are your coordinates.
 ```
 php bin/console beer:search --lat=51.742503 --long=19.432956
 ```
