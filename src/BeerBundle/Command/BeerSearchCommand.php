@@ -53,6 +53,9 @@ class BeerSearchCommand extends ContainerAwareCommand
         $stopwatch->start('trip');
 
         $beerService = $this->getContainer()->get('beer.beer_service');
+        $tripService = $this->getContainer()->get('beer.trip_service');
+        $distanceService = $this->getContainer()->get('beer.distance_service');
+
         if (!$beerService->isDatabaseReady()) {
             $question = new ConfirmationQuestion('Database not ready, prepare database? <Y/n>', true);
             if ($this->getHelper('question')->ask($input, $output, $question)) {
@@ -64,7 +67,6 @@ class BeerSearchCommand extends ContainerAwareCommand
 
         $myLocation = new LocationModel($input->getOption('lat'), $input->getOption('long'));
 
-        $tripService = $this->getContainer()->get('beer.trip_service');
 
         $locations = $tripService->travel($myLocation);
         $beers = $tripService->getBeersFromPoints($locations);
@@ -75,14 +77,13 @@ class BeerSearchCommand extends ContainerAwareCommand
             '%long%'     => $myLocation->getLongitude(),
             '%distance%' => 0,
         ]));
-        $distances = 0;
         foreach ($locations as $key => $location) {
             if ($key === 0) {
-                $distance = $tripService->getDistance($myLocation, $location);
+                $distance = $distanceService->getDistance($myLocation, $location);
             } else {
-                $distance = $tripService->getDistance($locations[$key - 1], $location);
+                $distance = $distanceService->getDistance($locations[$key - 1], $location);
             }
-            $distances += $distance;
+
             $output->writeln(strtr('-> [%id%] %title%: %lat%, %long% distance %distance%km', [
                 '%id%'       => $location->getBrewery()->getId(),
                 '%title%'    => $location->getBrewery()->getName(),
@@ -94,13 +95,15 @@ class BeerSearchCommand extends ContainerAwareCommand
         $output->writeln(strtr('-> HOME: %lat%, %long% distance %distance%km', [
             '%lat%'      => $myLocation->getLatitude(),
             '%long%'     => $myLocation->getLongitude(),
-            '%distance%' => number_format($tripService->getDistance($locations[count($locations) - 1], $myLocation)),
+            '%distance%' => number_format(
+                $distanceService->getDistance($locations[count($locations) - 1], $myLocation)
+            ),
         ]));
 
         $output->writeln(strtr(
-            'Total distance travelled: %distance%km',
-            ['%distance%' => number_format($tripService->sumPointsDistance($locations), 0, '.', '')]
-        ));
+                'Total distance travelled: %distance%km',
+                ['%distance%' => number_format($tripService->sumPointsDistance($locations), 0, '.', '')])
+        );
 
         $output->writeln(strtr('Collected %count% beer types:', ['%count%' => count($beers)]));
         foreach ($beers as $beer) {
@@ -110,5 +113,4 @@ class BeerSearchCommand extends ContainerAwareCommand
 
         $output->writeln(strtr('Program took: %duration%ms', ['%duration%' => $event->getDuration()]));
     }
-
 }
