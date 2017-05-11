@@ -2,9 +2,13 @@ services:
     beer.trip_service:
         class: BeerBundle\Service\TripService
         arguments:
-            - '@service_container'
+            - '@doctrine.orm.entity_manager'
+            - '@beer.distance_service'
 
     beer.beer_service:
         class: BeerBundle\Service\BeerService
         arguments:
             - '@service_container'
+
+    beer.distance_service:
+        class: BeerBundle\Service\DistanceService
