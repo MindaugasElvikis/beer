@@ -1,0 +1,10 @@
+services:
+    beer.trip_service:
+        class: BeerBundle\Service\TripService
+        arguments:
+            - '@service_container'
+
+    beer.beer_service:
+        class: BeerBundle\Service\BeerService
+        arguments:
+            - '@service_container'
