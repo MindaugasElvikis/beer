@@ -112,5 +112,4 @@ class BeerSearchCommand extends ContainerAwareCommand
 
         $output->writeln(strtr('Program took: %duration%ms', ['%duration%' => $event->getDuration()]));
     }
-
 }
