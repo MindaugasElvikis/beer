@@ -95,14 +95,15 @@ class BeerSearchCommand extends ContainerAwareCommand
         $output->writeln(strtr('-> HOME: %lat%, %long% distance %distance%km', [
             '%lat%'      => $myLocation->getLatitude(),
             '%long%'     => $myLocation->getLongitude(),
-            '%distance%' => number_format($distanceService->getDistance($locations[count($locations) - 1],
-                $myLocation)),
+            '%distance%' => number_format(
+                $distanceService->getDistance($locations[count($locations) - 1], $myLocation)
+            ),
         ]));
 
         $output->writeln(strtr(
-            'Total distance travelled: %distance%km',
-            ['%distance%' => number_format($tripService->sumPointsDistance($locations), 0, '.', '')]
-        ));
+                'Total distance travelled: %distance%km',
+                ['%distance%' => number_format($tripService->sumPointsDistance($locations), 0, '.', '')])
+        );
 
         $output->writeln(strtr('Collected %count% beer types:', ['%count%' => count($beers)]));
         foreach ($beers as $beer) {
