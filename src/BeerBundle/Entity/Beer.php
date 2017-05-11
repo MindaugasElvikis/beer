@@ -104,9 +104,9 @@ class Beer
     /**
      * @var string
      *
-     * @ORM\Column(name="description", type="string")
+     * @ORM\Column(name="description", type="string", nullable=true)
      *
-     * @Serializer\SerializedName("descript")
+     * @Serializer\SerializedName("description")
      */
     protected $description;
 

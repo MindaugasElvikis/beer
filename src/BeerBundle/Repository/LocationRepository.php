@@ -2,7 +2,8 @@
 
 namespace BeerBundle\Repository;
 
-use BeerBundle\Model\Location;
+use BeerBundle\Entity\Location;
+use BeerBundle\Model\LocationModel;
 use Doctrine\ORM\EntityRepository;
 
 /**
@@ -24,16 +25,16 @@ class LocationRepository extends EntityRepository
     }
 
     /**
-     * @param Location $location
-     * @param float    $limit
+     * @param LocationModel $location
+     * @param float         $limit
      *
-     * @return \Doctrine\ORM\Query
+     * @return array|Location[]
      */
-    public function getLocationsInArea(Location $location, $limit)
+    public function getLocationsInArea(LocationModel $location, $limit)
     {
         $query = $this->createQueryBuilder('location');
 
-        return $query
+        $query
             ->addSelect('distance(location.latitude, location.longitude, ' . $location->getLatitude() . ', ' . $location->getLongitude() . ') as hidden distance')
             ->addSelect('count(beers.id) as hidden beer_count')
             ->join('location.brewery', 'brewery')->addSelect('brewery')
@@ -43,6 +44,8 @@ class LocationRepository extends EntityRepository
             ->addOrderBy($query->expr()->desc('beer_count'))
             ->addOrderBy($query->expr()->asc('distance'))
             ->addGroupBy('location.id')
-            ->getQuery();
+            ->addGroupBy('beers.id');
+
+        return $query->getQuery()->getResult();
     }
 }

@@ -43,10 +43,10 @@ class DistanceFunction extends FunctionNode
         $parser->match(Lexer::T_IDENTIFIER);
         $parser->match(Lexer::T_OPEN_PARENTHESIS);
 
-        $this->lat = $parser->ArithmeticPrimary();
+        $this->remoteLat = $parser->ArithmeticPrimary();
         $parser->match(Lexer::T_COMMA);
 
-        $this->long = $parser->ArithmeticPrimary();
+        $this->remoteLong = $parser->ArithmeticPrimary();
         $parser->match(Lexer::T_COMMA);
 
         $this->currentLat = $parser->ArithmeticPrimary();

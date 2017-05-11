@@ -3,12 +3,13 @@
 namespace BeerBundle\Command;
 
 use BeerBundle\Exception\NoMapException;
-use BeerBundle\Model\Location;
+use BeerBundle\Model\LocationModel;
 use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Question\ConfirmationQuestion;
+use Symfony\Component\Stopwatch\Stopwatch;
 
 /**
  * Class BeerSearchCommand.
@@ -48,6 +49,9 @@ class BeerSearchCommand extends ContainerAwareCommand
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
+        $stopwatch = new Stopwatch();
+        $stopwatch->start('trip');
+
         $beerService = $this->getContainer()->get('beer.beer_service');
         if (!$beerService->isDatabaseReady()) {
             $question = new ConfirmationQuestion('Database not ready, prepare database? <Y/n>', true);
@@ -58,10 +62,53 @@ class BeerSearchCommand extends ContainerAwareCommand
             }
         }
 
-        $location = new Location($input->getOption('lat'), $input->getOption('long'));
+        $myLocation = new LocationModel($input->getOption('lat'), $input->getOption('long'));
 
         $tripService = $this->getContainer()->get('beer.trip_service');
-        $tripService->startTrip($location);
+
+        $locations = $tripService->travel($myLocation);
+        $beers = $tripService->getBeersFromPoints($locations);
+
+        $output->writeln(strtr('Found %count% beer factories:', ['%count%' => count($locations)]));
+        $output->writeln(strtr('-> HOME: %lat%, %long% distance %distance%km', [
+            '%lat%'      => $myLocation->getLatitude(),
+            '%long%'     => $myLocation->getLongitude(),
+            '%distance%' => 0,
+        ]));
+        $distances = 0;
+        foreach ($locations as $key => $location) {
+            if ($key === 0) {
+                $distance = $tripService->getDistance($myLocation, $location);
+            } else {
+                $distance = $tripService->getDistance($locations[$key - 1], $location);
+            }
+            $distances += $distance;
+            $output->writeln(strtr('-> [%id%] %title%: %lat%, %long% distance %distance%km', [
+                '%id%'       => $location->getBrewery()->getId(),
+                '%title%'    => $location->getBrewery()->getName(),
+                '%lat%'      => $location->getLatitude(),
+                '%long%'     => $location->getLongitude(),
+                '%distance%' => number_format($distance),
+            ]));
+        }
+        $output->writeln(strtr('-> HOME: %lat%, %long% distance %distance%km', [
+            '%lat%'      => $myLocation->getLatitude(),
+            '%long%'     => $myLocation->getLongitude(),
+            '%distance%' => number_format($tripService->getDistance($locations[count($locations) - 1], $myLocation)),
+        ]));
+
+        $output->writeln(strtr(
+            'Total distance travelled: %distance%km',
+            ['%distance%' => number_format($tripService->sumPointsDistance($locations), 0, '.', '')]
+        ));
+
+        $output->writeln(strtr('Collected %count% beer types:', ['%count%' => count($beers)]));
+        foreach ($beers as $beer) {
+            $output->writeln(strtr('-> %beer%', ['%beer%' => $beer]));
+        }
+        $event = $stopwatch->stop('trip');
+
+        $output->writeln(strtr('Program took: %duration%ms', ['%duration%' => $event->getDuration()]));
     }
 
 }

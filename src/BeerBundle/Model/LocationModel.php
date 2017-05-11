@@ -3,9 +3,9 @@
 namespace BeerBundle\Model;
 
 /**
- * Class Location.
+ * Class LocationModel.
  */
-class Location
+class LocationModel
 {
     /**
      * @var float
