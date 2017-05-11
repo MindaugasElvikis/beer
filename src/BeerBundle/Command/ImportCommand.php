@@ -19,7 +19,8 @@ class ImportCommand extends ContainerAwareCommand
     protected function configure()
     {
         $this
-            ->setName('brewery:import');
+            ->setName('brewery:import')
+            ->addArgument('remote', null, '', false);
     }
 
     /**
@@ -28,6 +29,7 @@ class ImportCommand extends ContainerAwareCommand
      *
      * @return void
      *
+     * @throws \RuntimeException
      * @throws \LogicException
      * @throws \Symfony\Component\Serializer\Exception\UnexpectedValueException
      * @throws \Symfony\Component\DependencyInjection\Exception\ServiceNotFoundException
@@ -40,7 +42,9 @@ class ImportCommand extends ContainerAwareCommand
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $this->getContainer()->get('beer.beer_service')->importDatabase();
+        $this->getContainer()->get('beer.beer_service')
+            ->setFetchFromRemote($input->getArgument('remote'))
+            ->importDatabase();
 
         $output->writeln('Success.');
     }

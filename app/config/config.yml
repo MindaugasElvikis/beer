@@ -71,3 +71,20 @@ swiftmailer:
     username:  "%mailer_user%"
     password:  "%mailer_password%"
     spool:     { type: memory }
+
+oneup_flysystem:
+    adapters:
+        beer_dumps:
+            local:
+                directory: %kernel.root_dir%/../src/BeerBundle/Resources/files
+                lazy: ~ # boolean (default "false")
+                writeFlags: ~
+                linkHandling: ~
+                permissions: ~
+
+    filesystems:
+        acme:
+            adapter: beer_dumps
+            cache: ~
+            alias: ~
+            mount: ~
