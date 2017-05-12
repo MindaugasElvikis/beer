@@ -35,7 +35,9 @@ class LocationRepository extends EntityRepository
         $query = $this->createQueryBuilder('location');
 
         $query
-            ->addSelect('distance(location.latitude, location.longitude, ' . $location->getLatitude() . ', ' . $location->getLongitude() . ') as hidden distance')
+            ->addSelect('distance(location.latitude, location.longitude, :lat, :long) as hidden distance')
+            ->setParameter('lat', $location->getLatitude())
+            ->setParameter('long', $location->getLongitude())
             ->addSelect('count(beers.id) as hidden beer_count')
             ->join('location.brewery', 'brewery')->addSelect('brewery')
             ->join('brewery.beers', 'beers')->addSelect('beers')
